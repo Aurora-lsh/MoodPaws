@@ -146,10 +146,6 @@ python YOLO-Animal-Pose-main.py
 | Vision Inference FPS (RDK X5 NPU) | 35-42 FPS |
 | Semantic Translation End-to-End Latency | < 2.5s |
 
-## License
-
-This project is a competition entry for the China Collegiate Computing Contest (中国大学生计算机设计大赛).
-
 ## References
 
 - Insight Research Institute. 2025 China Pet Consumption Trends White Paper
