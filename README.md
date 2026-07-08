@@ -2,6 +2,8 @@
 
 **An Intelligent Pet Boarding House Based on Multimodal Emotion Translation**
 
+`IoT` `AI Emotion Recognition` `Pet Care`
+
 [中文版本](./README_cn.md)
 
 ## Introduction
