@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐶 MoodPaws 狗狗情感分析系统</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; color: #333; display: flex; justify-content: center; padding-top: 50px; margin: 0; }
+        .container { background: white; width: 800px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 50px; }
+        .header { background: #6b46c1; color: white; padding: 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; }
+        .tabs { display: flex; background: #eee; }
+        .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-weight: bold; transition: all 0.3s ease; color: #666; }
+        .tab:hover { background: #e2e8f0; }
+        .tab.active { background: white; color: #6b46c1; border-top: 3px solid #6b46c1; }
+        .content { padding: 30px; display: none; }
+        .content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        button { background: #6b46c1; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 16px; margin-top: 10px; transition: background 0.2s; }
+        button:hover { background: #553c9a; }
+        .result-box { margin-top: 20px; padding: 15px; border-left: 4px solid #6b46c1; background: #f8f9fa; border-radius: 4px; line-height: 1.6; }
+        .status-box { margin-top: 15px; padding: 12px; border-left: 4px solid #6b46c1; background: #e9ecef; border-radius: 4px; color: #555; display: none; font-size: 14px; align-items: center; gap: 8px; }
+        .records-container { margin-top: 15px; }
+        .record-btn.recording { background: #e53e3e; animation: pulse 1.5s infinite; }
+        input[type="file"] { margin-bottom: 10px; font-size: 15px; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🐶 MoodPaws 狗狗情感分析系统</h1>
+    </div>
+    
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab(this, 'upload')">📁 文件上传分析</div>
+        <div class="tab" onclick="switchTab(this, 'realtime')">🎙️ 实时监控 (5秒轮询)</div>
+    </div>
+
+    <div id="upload" class="content active">
+        <h3>上传完整的录音文件</h3>
+        <input type="file" id="audioFile" accept="audio/*">
+        <br>
+        <button onclick="uploadFile()">🚀 开始分析</button>
+        <div id="uploadResult" class="result-box" style="display:none;"></div>
+    </div>
+
+    <div id="realtime" class="content">
+        <h3>实时监听模式</h3>
+        <p style="color: #666; font-size: 14px; margin-bottom: 15px;">开启后，每隔 5 秒会自动将最新录音发送给 AI 进行分析，最多保留 3 条历史记录。</p>
+        <button id="recordBtn" class="record-btn" onclick="toggleRecording()">开始监听</button>
+        
+        <div id="statusIndicator" class="status-box">
+            <span id="statusIcon">🎧</span>
+            <span id="statusText">等待开始...</span>
+        </div>
+
+        <div id="realtimeResult" class="records-container" style="display:none;"></div>
+    </div>
+</div>
+
+<script>
+    const API_URL = "http://127.0.0.1:8000/api/analyze";
+    let mediaRecorder;
+    let isRecording = false;
+    let recordInterval;
+    let historyRecords = []; 
+
+    // ========== 切换 Tab ==========
+    function switchTab(element, tabId) {
+        document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        element.classList.add('active');
+    }
+
+    // ========== 渲染结果 HTML 模板 ==========
+    function buildResultHTML(data, type="upload") {
+        const timeStr = type === "realtime" ? `[${new Date().toLocaleTimeString('zh-CN', { hour12: false })}] 实时抓取` : "分析结果";
+        return `
+            <div class="result-box" style="margin-top: 10px;">
+                <span style="color: #888; font-size: 0.9em;">${timeStr}</span> 
+                <strong style="color: #6b46c1; margin-left: 5px;">${data.emotion}</strong> 
+                <span style="font-size: 0.85em; color: #666;">(${data.confidence})</span><br>
+                
+                ${data.spectrogram ? `
+                <div style="margin: 10px 0; border-radius: 4px; overflow: hidden; background: #222; height: 50px;">
+                    <img src="data:image/png;base64,${data.spectrogram}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.9;" alt="声纹图">
+                </div>` : ''}
+                
+                <div style="margin-top: 5px; font-size: 16px;">💬 <strong>${data.translation}</strong></div>
+            </div>
+        `;
+    }
+
+    // ========== 📁 文件上传逻辑 ==========
+    async function uploadFile() {
+        const fileInput = document.getElementById('audioFile');
+        const resultBox = document.getElementById('uploadResult');
+        if (fileInput.files.length === 0) return alert("请先选择音频文件！");
+
+        const formData = new FormData();
+        formData.append("audio_file", fileInput.files[0]);
+
+        resultBox.style.display = "block";
+        resultBox.innerHTML = "⏳ AI 分析中，请稍候...";
+
+        try {
+            const response = await fetch(API_URL, { method: "POST", body: formData });
+            const data = await response.json();
+            if (data.status === "success") {
+                resultBox.innerHTML = buildResultHTML(data, "upload");
+            } else {
+                resultBox.innerHTML = `❌ 后端报错：${data.message}`;
+            }
+        } catch (error) {
+            resultBox.innerHTML = `❌ 网络错误：请确认后端是否运行在 8000 端口。`;
+        }
+    }
+
+    // ========== 🎙️ 实时监听逻辑 ==========
+    async function toggleRecording() {
+        const btn = document.getElementById('recordBtn');
+        const resultBox = document.getElementById('realtimeResult');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusIcon = document.getElementById('statusIcon');
+        const statusText = document.getElementById('statusText');
+
+        if (isRecording) {
+            clearInterval(recordInterval);
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop()); 
+            }
+            isRecording = false;
+            btn.innerText = "开始监听";
+            btn.classList.remove('recording');
+            statusIcon.innerText = "🎧";
+            statusText.innerText = "已停止监听。";
+            return;
+        }
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            
+            isRecording = true;
+            btn.innerText = "🛑 停止监听";
+            btn.classList.add('recording');
+            historyRecords = []; 
+            resultBox.style.display = "block";
+            resultBox.innerHTML = ""; 
+            statusIndicator.style.display = "flex";
+            statusIcon.innerText = "🎙️";
+            statusText.innerText = "监听中，正在收集第一个 5 秒音频...";
+
+            const startChunk = () => {
+                mediaRecorder = new MediaRecorder(stream);
+                let audioChunks = [];
+                mediaRecorder.ondataavailable = e => { if(e.data.size > 0) audioChunks.push(e.data); };
+                mediaRecorder.onstop = async () => {
+                    if (audioChunks.length > 0 && isRecording) {
+                        const audioBlob = new window.Blob(audioChunks, { type: 'audio/webm' });
+                        await sendChunkToBackend(audioBlob, resultBox);
+                    }
+                };
+                mediaRecorder.start();
+            };
+
+            startChunk();
+            recordInterval = setInterval(() => {
+                if (mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop(); 
+                    startChunk(); 
+                }
+            }, 5000);
+
+        } catch (err) {
+            alert("无法获取麦克风权限，请使用 http://127.0.0.1 访问！");
+        }
+    }
+
+    // ========== 发送切片给后端 ==========
+    async function sendChunkToBackend(blob, resultBox) {
+        const statusIcon = document.getElementById('statusIcon');
+        const statusText = document.getElementById('statusText');
+
+        statusIcon.innerText = "⏳";
+        statusText.innerText = "音频捕获完毕，AI 正在分析并生成声纹...";
+
+        const formData = new FormData();
+        formData.append("audio_file", blob, `live_chunk_${Date.now()}.webm`); 
+        
+        try {
+            const response = await fetch(API_URL, { method: "POST", body: formData });
+            const data = await response.json();
+            
+            if (data.status === "success") {
+                const newRecord = buildResultHTML(data, "realtime");
+                historyRecords.unshift(newRecord);
+                if (historyRecords.length > 3) historyRecords.pop(); 
+                resultBox.innerHTML = historyRecords.join('');
+
+                if (isRecording) {
+                    statusIcon.innerText = "🎙️";
+                    statusText.innerText = "监听中，继续收集下一段音频...";
+                }
+            } else {
+                statusText.innerText = "❌ 分析出错，继续尝试中...";
+            }
+        } catch (error) {
+            statusText.innerText = "❌ 网络请求失败，请检查后端状态...";
+        }
+    }
+</script>
+</body>
+</html>

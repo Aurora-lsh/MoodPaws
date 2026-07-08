@@ -1,0 +1,37 @@
+[mqtt] starting subscriber {
+  brokerUrl: 'wss://iot-06z00b1eo2alugk.mqtt.iothub.aliyuncs.com:443/mqtt',
+  topics: [ '/k1wxaEnEO8L/petInfo/user/get' ],
+  clientId: 'k1wxaEnEO8L.petInfo|securemode=2,signmethod=hmacsha256|',
+  username: 'petInfo&k1wxaEnEO8L',
+  passwordMasked: '4f10***bed7',
+  reconnectPeriod: 3000,
+  connectTimeout: 10000,
+  protocolVersion: 4,
+  clean: true
+}
+moodpaws-server listening on http://0.0.0.0:3001
+[discovery] published mDNS service {
+  enabled: true,
+  published: true,
+  serviceName: 'moodpaws-server-18ca68',
+  serviceType: 'http',
+  healthPath: '/api/health',
+  publishedAt: 1776669734926,
+  stoppedAt: null,
+  lastError: '',
+  lastEvent: 'published'
+}
+[server] accessible addresses
+- http://127.0.0.1:3001
+- http://10.8.34.150:3001
+[server] health check path: /api/health
+[server] service id: moodpaws-debe18ca68
+[server] mDNS service: moodpaws-server-18ca68._http._tcp.local
+[mqtt] received connack { returnCode: 0, sessionPresent: false }
+[mqtt] connected { sessionPresent: false, returnCode: 0 }
+[mqtt] sent subscribe packet {
+  messageId: 47768,
+  subscriptions: [ { topic: '/k1wxaEnEO8L/petInfo/user/get', qos: 0 } ]
+}
+[mqtt] received suback { messageId: 47768, granted: [ 1 ] }
+[mqtt] subscribed [ { topic: '/k1wxaEnEO8L/petInfo/user/get', qos: 1 } ]

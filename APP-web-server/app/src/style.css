@@ -1,0 +1,77 @@
+:root {
+  --color-bg: #f7f1e7;
+  --color-bg-soft: #fff8ee;
+  --color-surface: rgba(255, 253, 248, 0.9);
+  --color-surface-strong: #fffdf8;
+  --color-surface-muted: #fbf3e8;
+  --color-border: rgba(95, 76, 55, 0.1);
+  --color-divider: rgba(95, 76, 55, 0.08);
+  --color-text: #2f2a24;
+  --color-text-secondary: #756b60;
+  --color-text-muted: #a09589;
+  --color-primary: #5f8f72;
+  --color-primary-deep: #3f7356;
+  --color-primary-soft: rgba(95, 143, 114, 0.14);
+  --color-cream: #fff4df;
+  --color-warm: #f2a65a;
+  --color-warm-soft: rgba(242, 166, 90, 0.16);
+  --color-blue: #7aa7c7;
+  --color-blue-soft: rgba(122, 167, 199, 0.15);
+  --color-success: #5da974;
+  --color-warning: #e4a14e;
+  --color-danger: #d97368;
+  --color-shadow: 0 18px 45px rgba(95, 76, 55, 0.1);
+  --color-shadow-soft: 0 10px 26px rgba(95, 76, 55, 0.07);
+  --radius-sm: 16px;
+  --radius: 22px;
+  --radius-lg: 30px;
+  --tab-height: 62px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --page-max-width: 560px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei UI',
+    'Microsoft YaHei', sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--color-text);
+  background:
+    radial-gradient(circle at 16% 4%, rgba(255, 220, 166, 0.44), transparent 26%),
+    radial-gradient(circle at 88% 0%, rgba(142, 190, 154, 0.24), transparent 24%),
+    linear-gradient(180deg, #fff7eb 0%, #f7f1e7 54%, #f2eadf 100%);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+  font: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+img,
+svg {
+  display: block;
+}
+
+#app {
+  min-height: 100vh;
+}
