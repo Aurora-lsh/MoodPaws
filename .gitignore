@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Mimocode
+.mimocode/
+
+# Build output
+dist/
+build/
+*.apk
+*.aab
+
+# Android build artifacts
+APP-web-server/app/android/app/build/
+APP-web-server/app/android/capacitor-cordova-android-plugins/build/
+APP-web-server/app/android/.gradle/
+APP-web-server/app/android/build/
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.db-journal
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Model weights (large files)
+*.pth
+*.pt
+*.onnx
